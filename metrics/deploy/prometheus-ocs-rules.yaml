@@ -8,6 +8,13 @@ metadata:
   namespace: openshift-storage
 spec:
   groups:
+  - name: ODF_standardized_metrics.rules
+    rules:
+    - expr: |
+        ceph_health_status
+      labels:
+        subsystem_type: OCS
+      record: odf_system_health
   - name: cluster-services-alert.rules
     rules:
     - alert: ClusterObjectStoreState
