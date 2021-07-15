@@ -321,6 +321,14 @@ func (r *StorageClusterReconciler) reconcilePhases(
 		return reconcile.Result{}, nil
 	}
 
+	if instance.Spec.Monitoring == nil {
+		instance.Spec.Monitoring = &ocsv1.MonitoringSpec{
+			Labels: map[string]string{
+				"subsystemName": instance.Name,
+			},
+		}
+	}
+
 	if !instance.Spec.ExternalStorage.Enable {
 		// Get storage node topology labels
 		if err := r.reconcileNodeTopologyMap(instance); err != nil {

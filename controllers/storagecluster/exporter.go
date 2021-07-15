@@ -162,6 +162,14 @@ func CreateOrUpdateServiceMonitor(r *StorageClusterReconciler, instance *ocsv1.S
 	serviceMonitor := getMetricsExporterServiceMonitor(instance)
 	namespacedName := types.NamespacedName{Name: serviceMonitor.Name, Namespace: serviceMonitor.Namespace}
 
+	if instance.Spec.Monitoring != nil {
+		relabelConfig := monitoringv1.RelabelConfig{
+			TargetLabel: "subsystem_name",
+			Replacement: instance.Spec.Monitoring.Labels["subsystemName"],
+		}
+		serviceMonitor.Spec.Endpoints[0].RelabelConfigs = append(serviceMonitor.Spec.Endpoints[0].RelabelConfigs, &relabelConfig)
+	}
+
 	r.Log.Info("Reconciling metrics exporter service monitor", "NamespacedName", namespacedName)
 
 	oldSm := &monitoringv1.ServiceMonitor{}

@@ -8,6 +8,51 @@ metadata:
   namespace: openshift-storage
 spec:
   groups:
+  - name: ODF_standardized_metrics.rules
+    rules:
+    - expr: |
+        ceph_health_status
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_health_status
+    - expr: |
+        ceph_cluster_total_bytes
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_raw_capacity_total_bytes
+    - expr: |
+        ceph_cluster_total_used_raw_bytes
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_raw_capacity_used_bytes
+    - expr: |
+        sum by (namespace, subsystem_name, job, service) (rate(ceph_pool_wr[1m]) + rate(ceph_pool_rd[1m]))
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_iops_total_bytes
+    - expr: |
+        sum by (namespace, subsystem_name, job, service) (rate(ceph_pool_wr_bytes[1m]) + rate(ceph_pool_rd_bytes[1m]))
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_throughput_total_bytes
+    - expr: "avg by (namespace, subsystem_name, job, service)\n(\n  topk by (ceph_daemon)
+        (1, label_replace(label_replace(ceph_disk_occupation{job=\"rook-ceph-mgr\"},
+        \"instance\", \"$1\", \"exported_instance\", \"(.*)\"), \"device\", \"$1\",
+        \"device\", \"/dev/(.*)\")) \n  * on(instance, device) group_right(ceph_daemon,
+        subsystem_name) topk by (instance,device) \n  (1,\n    (\n      (  \n          rate(node_disk_read_time_seconds_total{device=~\"sd.*\",
+        }[1m]) / (clamp_min(rate(node_disk_reads_completed_total[1m]), 1))\n      )
+        +\n      (\n          rate(node_disk_write_time_seconds_total{device=~\"sd.*\"
+        }[1m]) / (clamp_min(rate(node_disk_reads_completed_total[1m]), 1))\n      )\n
+        \   )\n  )\n)\n"
+      labels:
+        subsystem_type: OCS
+        subsystem_vendor: Red Hat
+      record: odf_system_latency_seconds
   - name: external-cluster-services-alert.rules
     rules:
     - alert: ClusterObjectStoreState
